@@ -48,13 +48,13 @@ export async function exportProject(project) {
     pages.push({ name: page.file.name, type: page.file.type, data,
       text: page.text, translation: page.translation ?? '', complete: page.complete });
   }
-  return JSON.stringify({ version: 1, title: project.title, language: project.language, pages });
+  return JSON.stringify({ version: 1, title: project.title, language: project.language, layout: project.layout ?? 'page', pages });
 }
 
 export function importProject(text) {
   const value = JSON.parse(text);
   const types = ['image/png', 'image/jpeg', 'image/webp'];
-  if (value.version !== 1 || typeof value.title !== 'string' ||
+  if ((value.layout !== undefined && !['page', 'paragraph'].includes(value.layout)) || value.version !== 1 || typeof value.title !== 'string' ||
       !['eng', 'vie', 'vie+eng'].includes(value.language) || !Array.isArray(value.pages)) {
     throw new Error('Dự án không đúng định dạng.');
   }
@@ -69,5 +69,5 @@ export function importProject(text) {
     return { file: new File([bytes], page.name, { type: page.type }),
       text: page.text, translation: page.translation ?? '', complete: page.complete };
   });
-  return { title: value.title, language: value.language, pages };
+  return { title: value.title, language: value.language, layout: value.layout ?? 'page', pages };
 }

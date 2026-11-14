@@ -10,7 +10,13 @@ Dự án hiện tại tự lưu ảnh, thứ tự trang, ngôn ngữ và văn b�
 
 Sau OCR, chọn trang và bấm **Sao chép yêu cầu dịch trang này**, dán vào ChatGPT rồi đưa kết quả về ô **Bản dịch tiếng Việt**. Có thể tự nhập hoặc sửa bản dịch. Bản dịch được tự lưu và đưa vào bản sao dự án. Bản sao cũ chưa có bản dịch vẫn mở được.
 
-**Tải EPUB** tạo ebook EPUB 3 với mục lục theo trang, mỗi trang có nguyên văn trước rồi bản dịch sau. Trang chưa dịch giữ nguyên văn. TXT và sao chép toàn bộ cũng gồm cả hai phần. Ứng dụng hiện dùng dịch qua sao chép/dán và xuất EPUB; chưa có dịch tự động qua API, căn song ngữ theo từng đoạn hoặc xuất PRC.
+Chọn cách ghép song ngữ theo cả trang hoặc xen kẽ từng đoạn. Các đoạn được ngăn bằng dòng trống. Chế độ xen kẽ ghép theo thứ tự khi hai bên có cùng số đoạn. Nếu số đoạn khác nhau, ứng dụng báo rõ và xuất nguyên văn cả trang trước, bản dịch sau. Xem trước để kiểm tra nội dung từng cặp, vì số đoạn bằng nhau không đảm bảo bản dịch đã khớp ý.
+
+**Tải EPUB** tạo ebook EPUB 3 có mục lục theo trang. **Tải PRC** tạo Mobipocket văn bản UTF-8 với tiêu đề trang, xử lý ngay trong trình duyệt. Cả hai định dạng cùng dùng cách ghép đã chọn. TXT và sao chép toàn bộ cũng gồm cả hai phần. Ứng dụng hiện dùng dịch qua sao chép/dán, chưa có dịch tự động qua API.
+
+PRC đã được kiểm tra giải mã bằng KindleUnpack qua gói Python mobi, gồm nội dung tiếng Việt qua nhiều khối văn bản. Cần kiểm tra hiển thị trên ứng dụng đọc sách cụ thể của người dùng. Định dạng nhị phân tham khảo https://wiki.mobileread.com/wiki/MOBI.
+
+Chạy các kiểm tra hồi quy bằng `npm test`.
 
 ## Chạy trên máy
 

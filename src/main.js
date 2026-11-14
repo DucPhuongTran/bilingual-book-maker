@@ -1,8 +1,34 @@
 import { createWorker } from 'tesseract.js';
 import './style.css';
+import { pageSegments, splitParagraphs } from './bilingual.js';
+import { makePrc } from './prc.js';
 import { makeEpub } from './ebook.js';
 const translation = document.querySelector('#translation');
 const translationPrompt = document.querySelector('#translation-prompt');
+const prc = document.querySelector('#prc');
+const layout = document.querySelector('#layout');
+const alignmentStatus = document.querySelector('#alignment-status');
+const bilingualPreview = document.querySelector('#bilingual-preview');
+const previewBook = document.querySelector('#preview-book');
+
+function updatePreview() {
+  const page = pages[selectedIndex];
+  bilingualPreview.replaceChildren();
+  if (!page) { alignmentStatus.textContent = ''; return; }
+  const originals = splitParagraphs(page.text);
+  const translations = splitParagraphs(page.translation);
+  alignmentStatus.textContent = layout.value === 'paragraph' && originals.length !== translations.length
+    ? `Có ${originals.length} đoạn gốc và ${translations.length} đoạn dịch. Trang này sẽ xuất nguyên văn trước, bản dịch sau cho đến khi số đoạn khớp.`
+    : `${originals.length} đoạn gốc, ${translations.length} đoạn dịch.`;
+  if (!previewBook.open) return;
+  for (const segment of pageSegments(page, layout.value)) {
+    const paragraph = document.createElement('p');
+    paragraph.textContent = segment.text;
+    if (segment.translated) paragraph.className = 'translation';
+    bilingualPreview.append(paragraph);
+  }
+}
+previewBook.addEventListener('toggle', updatePreview);
 const epub = document.querySelector('#epub');
 import { readProject, writeProject, exportProject, importProject } from './project.js';
 
@@ -17,7 +43,7 @@ let revision = 0;
 let restoring = true;
 
 function projectSnapshot() {
-  return { title: bookTitle.value, language: language.value,
+  return { title: bookTitle.value, language: language.value, layout: layout.value,
     pages: pages.map(page => ({ ...page })) };
 }
 
@@ -73,18 +99,19 @@ let previewUrl;
 let busy = true;
 
 function combinedText() {
-  return pages.map(({ text, translation }) => [text.trim(), translation?.trim()].filter(Boolean).join('\n\n')).filter(Boolean).join('\n\n');
+  return pages.map(page => pageSegments(page, layout.value).map(segment => segment.text).join('\n\n')).filter(Boolean).join('\n\n');
 }
 
 function updateControls() {
   const hasPage = selectedIndex >= 0;
+  layout.disabled = busy;
   bookTitle.disabled = busy;
   backup.disabled = busy;
   restore.disabled = busy;
   newProject.disabled = busy;
   translation.readOnly = busy || !hasPage;
   translationPrompt.disabled = busy || !pages[selectedIndex]?.text.trim();
-  epub.disabled = busy || !pages.some(page => page.text.trim() || page.translation?.trim());
+  prc.disabled = epub.disabled = busy || !pages.some(page => page.text.trim() || page.translation?.trim());
   fileInput.disabled = busy;
   pageSelect.disabled = busy;
   language.disabled = busy;
@@ -109,6 +136,7 @@ function showPage() {
   else preview.removeAttribute('src');
   result.value = page?.text ?? '';
   translation.value = page?.translation ?? '';
+  updatePreview();
   result.scrollTop = 0;
   outputStatus.textContent = '';
   updateControls();
@@ -240,6 +268,7 @@ result.addEventListener('input', () => {
   const page = pages[selectedIndex];
   if (page) page.text = result.value;
   storageStatus.textContent = 'Đang chờ lưu…';
+  updatePreview();
   clearTimeout(saveTimer);
   saveTimer = setTimeout(persistProject, 300);
   outputStatus.textContent = '';
@@ -258,6 +287,7 @@ translation.addEventListener('input', () => {
   clearTimeout(saveTimer);
   storageStatus.textContent = 'Đang chờ lưu…';
   saveTimer = setTimeout(persistProject, 300);
+  updatePreview();
   updateControls();
 });
 translationPrompt.addEventListener('click', async () => {
@@ -285,6 +315,15 @@ save.addEventListener('click', () => {
 });
 bookTitle.addEventListener('input', persistProject);
 language.addEventListener('change', persistProject);
+layout.addEventListener('change', () => { updatePreview(); persistProject(); });
+prc.addEventListener('click', () => {
+  try {
+    download(makePrc(projectSnapshot()), (bookTitle.value.trim() || 'sach-song-ngu') + '.prc', 'application/x-mobipocket-ebook');
+    outputStatus.textContent = 'Đã xuất PRC dạng Mobipocket với văn bản tiếng Việt.';
+  } catch (error) {
+    outputStatus.textContent = error.message;
+  }
+});
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'hidden') persistProject();
 });
@@ -308,6 +347,7 @@ function applyProject(project) {
   pages.splice(0, pages.length, ...project.pages);
   bookTitle.value = project.title;
   language.value = project.language;
+  layout.value = project.layout ?? 'page';
   selectedIndex = pages.length ? 0 : -1;
   showPage();
 }

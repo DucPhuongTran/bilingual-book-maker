@@ -15,6 +15,11 @@
     <section class="project" aria-label="Dự án sách">
       <label for="book-title">Tên sách</label>
       <input id="book-title" placeholder="Sách của tôi">
+      <label for="layout">Cách ghép song ngữ</label>
+      <select id="layout">
+        <option value="page">Nguyên văn cả trang, rồi bản dịch</option>
+        <option value="paragraph">Xen kẽ từng đoạn nguyên văn và bản dịch</option>
+      </select>
       <div class="actions">
         <button id="backup">Tải bản sao dự án</button>
         <label for="restore">Mở bản sao dự án</label>
@@ -57,9 +62,12 @@
         <button id="translation-prompt">Sao chép yêu cầu dịch trang này</button>
         <label for="translation">Bản dịch tiếng Việt</label>
         <textarea id="translation" placeholder="Dán bản dịch từ ChatGPT vào đây, hoặc tự nhập và chỉnh sửa."></textarea>
-        <p>Bản song ngữ được ghép theo trang, nguyên văn ở trước và bản dịch ở sau.</p>
+        <p id="alignment-status" role="status"></p>
+        <p>Tách các đoạn bằng một dòng trống ở cả hai ô. Kiểm tra ý của từng cặp trong bản xem trước.</p>
+        <details id="preview-book"><summary>Xem trước song ngữ trang này</summary><div id="bilingual-preview"></div></details>
         <div class="actions">
           <button id="epub">Tải EPUB</button>
+          <button id="prc">Tải PRC</button>
           <button id="copy" disabled>Sao chép toàn bộ</button>
           <button id="save" disabled>Tải TXT song ngữ</button>
         </div>

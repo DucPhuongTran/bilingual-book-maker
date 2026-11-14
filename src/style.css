@@ -40,3 +40,9 @@ textarea { display: block; width: 100%; min-height: 265px; resize: vertical; pad
 .project p { font-size: .9rem; }
 #translation-prompt { margin: 12px 0; }
 #translation { min-height: 200px; }
+#layout { margin-top: 4px; }
+label[for="layout"] { margin-top: 12px; }
+#bilingual-preview p { white-space: pre-wrap; overflow-wrap: anywhere; }
+#bilingual-preview .translation { font-style: italic; color: #526653; }
+#preview-book { padding: 12px 0; }
+summary { cursor: pointer; }
