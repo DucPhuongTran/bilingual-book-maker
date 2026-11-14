@@ -1,5 +1,124 @@
 import { createWorker } from 'tesseract.js';
 import './style.css';
+import { defaultProcessing, validateProcessing, prepareImage } from './image-processing.js';
+import { translateWithClaude } from './claude.js';
+const processingPanel = document.querySelector('#processing-panel');
+const cropInputs = Object.fromEntries(['top', 'bottom', 'left', 'right'].map(side => [side, document.querySelector('#crop-' + side)]));
+const invertImage = document.querySelector('#invert-image');
+const imageContrast = document.querySelector('#image-contrast');
+const resetProcessing = document.querySelector('#reset-processing');
+const processingStatus = document.querySelector('#processing-status');
+const processedPreview = document.querySelector('#processed-preview');
+const recognizeAgain = document.querySelector('#recognize-again');
+let processing = { ...defaultProcessing };
+let imagePreviewVersion = 0;
+let processedUrl;
+let imagePreviewTimer;
+const claudeKey = document.querySelector('#claude-key');
+const claudeModel = document.querySelector('#claude-model');
+const clearKey = document.querySelector('#clear-key');
+const translatePage = document.querySelector('#translate-page');
+const translateMissing = document.querySelector('#translate-missing');
+const stopTranslation = document.querySelector('#stop-translation');
+const claudeStatus = document.querySelector('#claude-status');
+let translationController;
+
+async function updateImagePreview() {
+  const version = ++imagePreviewVersion;
+  processedPreview.hidden = true;
+  if (processedUrl) URL.revokeObjectURL(processedUrl);
+  processedUrl = undefined;
+  if (!processingPanel.open || !pages[selectedIndex]) return;
+  processingStatus.textContent = 'Đang tạo ảnh xem trước…';
+  try {
+    const blob = await prepareImage(pages[selectedIndex].file, processing);
+    if (version !== imagePreviewVersion) return;
+    processedUrl = URL.createObjectURL(blob);
+    processedPreview.src = processedUrl;
+    processedPreview.hidden = false;
+    processingStatus.textContent = 'Ảnh sau xử lý sẽ được dùng cho OCR.';
+  } catch (error) {
+    if (version === imagePreviewVersion) processingStatus.textContent = 'Không thể xử lý ảnh này. Hãy kiểm tra ảnh hoặc đặt lại thiết lập.';
+  }
+}
+
+function setProcessingControls() {
+  for (const [side, input] of Object.entries(cropInputs)) input.value = processing[side];
+  invertImage.checked = processing.invert;
+  imageContrast.value = processing.contrast;
+}
+
+function changeProcessing() {
+  if (busy) return;
+  try {
+    const candidate = Object.fromEntries(Object.entries(cropInputs).map(([side, input]) => [side, input.valueAsNumber]));
+    processing = validateProcessing({ ...candidate, invert: invertImage.checked, contrast: Number(imageContrast.value) });
+    persistProject();
+    clearTimeout(imagePreviewTimer);
+    imagePreviewVersion += 1;
+    processedPreview.hidden = true;
+    imagePreviewTimer = setTimeout(updateImagePreview, 200);
+  } catch (error) {
+    processingStatus.textContent = error.message;
+    setProcessingControls();
+  }
+}
+for (const input of [...Object.values(cropInputs), invertImage, imageContrast]) input.addEventListener('change', changeProcessing);
+processingPanel.addEventListener('toggle', updateImagePreview);
+resetProcessing.addEventListener('click', () => {
+  if (busy) return;
+  processing = { ...defaultProcessing };
+  setProcessingControls();
+  persistProject();
+  updateImagePreview();
+});
+
+async function runTranslation(batch) {
+  if (busy || !batch.length || !claudeKey.value.trim() || !claudeModel.value.trim()) return;
+  busy = true;
+  translationController = new AbortController();
+  const apiKey = claudeKey.value;
+  const model = claudeModel.value;
+  updateControls();
+  let completed = 0;
+  const timeout = setTimeout(() => translationController?.abort(), 20 * 60 * 1000);
+  try {
+    for (const page of batch) {
+      claudeStatus.textContent = `Đang dịch trang ${pages.indexOf(page) + 1}; đã xong ${completed}/${batch.length}.`;
+      const translated = await translateWithClaude({ text: page.text, apiKey, model, signal: translationController.signal });
+      if (translationController.signal.aborted) break;
+      page.translation = translated;
+      completed += 1;
+      persistProject();
+      if (pages[selectedIndex] === page) {
+        translation.value = translated;
+        updatePreview();
+      }
+    }
+    claudeStatus.textContent = `Đã dịch ${completed}/${batch.length} trang. Kiểm tra bản xem trước để soát nội dung.`;
+  } catch (error) {
+    claudeStatus.textContent = translationController.signal.aborted
+      ? `Đã dừng. Giữ lại ${completed} trang dịch xong. Yêu cầu đã gửi có thể vẫn tính phí.`
+      : `Đã lưu ${completed} trang. ${error.message}`;
+  } finally {
+    clearTimeout(timeout);
+    translationController = undefined;
+    busy = false;
+    updateControls();
+  }
+}
+claudeKey.addEventListener('input', updateControls);
+claudeModel.addEventListener('input', updateControls);
+clearKey.addEventListener('click', () => { claudeKey.value = ''; updateControls(); });
+stopTranslation.addEventListener('click', () => translationController?.abort());
+translatePage.addEventListener('click', () => {
+  const page = pages[selectedIndex];
+  if (!page?.text.trim()) return;
+  if (page.translation?.trim() && !confirm('Dịch lại sẽ thay bản dịch hiện tại của trang này. Tiếp tục?')) return;
+  runTranslation([page]);
+});
+translateMissing.addEventListener('click', () => runTranslation(pages.filter(page => page.text.trim() && !page.translation?.trim())));
+
 import { pageSegments, splitParagraphs } from './bilingual.js';
 import { makePrc } from './prc.js';
 import { makeEpub } from './ebook.js';
@@ -43,7 +162,7 @@ let revision = 0;
 let restoring = true;
 
 function projectSnapshot() {
-  return { title: bookTitle.value, language: language.value, layout: layout.value,
+  return { title: bookTitle.value, language: language.value, layout: layout.value, processing: { ...processing },
     pages: pages.map(page => ({ ...page })) };
 }
 
@@ -104,6 +223,13 @@ function combinedText() {
 
 function updateControls() {
   const hasPage = selectedIndex >= 0;
+  for (const input of [...Object.values(cropInputs), invertImage, imageContrast, resetProcessing]) input.disabled = busy;
+  recognizeAgain.disabled = busy || !pages.length;
+  claudeKey.disabled = claudeModel.disabled = clearKey.disabled = busy;
+  const canTranslate = !busy && claudeKey.value.trim() && claudeModel.value.trim();
+  translatePage.disabled = !canTranslate || !pages[selectedIndex]?.text.trim();
+  translateMissing.disabled = !canTranslate || !pages.some(page => page.text.trim() && !page.translation?.trim());
+  stopTranslation.disabled = !translationController;
   layout.disabled = busy;
   bookTitle.disabled = busy;
   backup.disabled = busy;
@@ -137,6 +263,7 @@ function showPage() {
   result.value = page?.text ?? '';
   translation.value = page?.translation ?? '';
   updatePreview();
+  updateImagePreview();
   result.scrollTop = 0;
   outputStatus.textContent = '';
   updateControls();
@@ -202,9 +329,8 @@ document.addEventListener('paste', (event) => {
   addFiles(files);
 });
 
-recognize.addEventListener('click', async () => {
+async function runRecognition(pending) {
   if (busy) return;
-  const pending = pages.filter(({ complete }) => !complete);
   if (!pending.length) return;
   let processed = 0;
   let failed = 0;
@@ -236,7 +362,7 @@ recognize.addEventListener('click', async () => {
     for (const page of pending) {
       status.textContent = `Đang xử lý trang ${pages.indexOf(page) + 1}/${pages.length}…`;
       try {
-        const { data } = await worker.recognize(page.file);
+        const { data } = await worker.recognize(await prepareImage(page.file, processing));
         page.text = data.text.trim();
         page.complete = true;
         persistProject();
@@ -262,6 +388,12 @@ recognize.addEventListener('click', async () => {
       showPage();
     }
   }
+}
+recognize.addEventListener('click', () => runRecognition(pages.filter(({ complete }) => !complete)));
+recognizeAgain.addEventListener('click', () => {
+  if (busy) return;
+  if (pages.some(page => page.text.trim()) && !confirm('Nhận dạng lại sẽ thay văn bản gốc đã chỉnh sửa ở các trang thành công. Bạn cần soát lại bản dịch sau đó. Tiếp tục?')) return;
+  runRecognition([...pages]);
 });
 
 result.addEventListener('input', () => {
@@ -348,6 +480,8 @@ function applyProject(project) {
   bookTitle.value = project.title;
   language.value = project.language;
   layout.value = project.layout ?? 'page';
+  processing = validateProcessing(project.processing);
+  setProcessingControls();
   selectedIndex = pages.length ? 0 : -1;
   showPage();
 }

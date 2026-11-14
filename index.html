@@ -45,6 +45,23 @@
             <button id="remove">Xóa trang</button>
           </div>
         </div>
+        <details id="processing-panel">
+          <summary>Cắt và xử lý ảnh trước OCR</summary>
+          <p>Áp dụng cùng tỷ lệ cho tất cả ảnh trong dự án. Lề cắt tính theo phần trăm ảnh gốc.</p>
+          <div class="crop-grid">
+            <label>Trên (%) <input id="crop-top" type="number" min="0" max="45" step="1" value="0"></label>
+            <label>Dưới (%) <input id="crop-bottom" type="number" min="0" max="45" step="1" value="0"></label>
+            <label>Trái (%) <input id="crop-left" type="number" min="0" max="45" step="1" value="0"></label>
+            <label>Phải (%) <input id="crop-right" type="number" min="0" max="45" step="1" value="0"></label>
+          </div>
+          <label><input id="invert-image" type="checkbox"> Đảo màu ảnh nền đen</label>
+          <label for="image-contrast">Tương phản</label>
+          <select id="image-contrast"><option value="1">Giữ nguyên</option><option value="1.5">Tăng nhẹ</option><option value="2">Tăng mạnh</option></select>
+          <button id="reset-processing">Đặt lại xử lý ảnh</button>
+          <p id="processing-status" role="status"></p>
+          <img id="processed-preview" alt="Ảnh sau khi cắt và xử lý, dùng để OCR" hidden>
+          <p>Đổi thiết lập rồi dùng Nhận dạng lại tất cả nếu muốn xử lý lại các trang đã có chữ.</p>
+        </details>
         <label for="language">Ngôn ngữ trong ảnh</label>
         <select id="language">
           <option value="vie+eng">Tiếng Việt và tiếng Anh</option>
@@ -52,6 +69,7 @@
           <option value="eng">Tiếng Anh</option>
         </select>
         <button id="recognize" class="primary" disabled>Nhận dạng các trang</button>
+        <button id="recognize-again" disabled>Nhận dạng lại tất cả</button>
         <progress id="progress" max="1" aria-label="Tiến độ nhận dạng" hidden></progress>
         <p id="status" role="status">Chọn ảnh để bắt đầu.</p>
       </section>
@@ -59,6 +77,21 @@
         <h2 id="result-title">Văn bản nhận dạng</h2>
         <label for="result">Văn bản của trang đang xem</label>
         <textarea id="result" spellcheck="false" placeholder="Kết quả sẽ xuất hiện ở đây. Bạn có thể sửa trực tiếp."></textarea>
+        <details id="claude-panel">
+          <summary>Dịch tự động bằng Claude API</summary>
+          <label for="claude-key">API key của bạn</label>
+          <input id="claude-key" type="password" autocomplete="off" spellcheck="false" placeholder="Nhập API key Anthropic">
+          <button id="clear-key">Xóa key</button>
+          <label for="claude-model">Tên model</label>
+          <input id="claude-model" value="claude-sonnet-4-6" autocomplete="off" spellcheck="false">
+          <p>Key chỉ giữ trong phiên này. Bấm dịch sẽ gửi văn bản OCR tới Anthropic và sử dụng hạn mức trả phí của API key.</p>
+          <div class="actions">
+            <button id="translate-page">Dịch trang đang xem</button>
+            <button id="translate-missing">Dịch các trang chưa có bản dịch</button>
+            <button id="stop-translation" disabled>Dừng dịch</button>
+          </div>
+          <p id="claude-status" role="status"></p>
+        </details>
         <button id="translation-prompt">Sao chép yêu cầu dịch trang này</button>
         <label for="translation">Bản dịch tiếng Việt</label>
         <textarea id="translation" placeholder="Dán bản dịch từ ChatGPT vào đây, hoặc tự nhập và chỉnh sửa."></textarea>

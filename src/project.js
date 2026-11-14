@@ -1,3 +1,4 @@
+import { validateProcessing } from './image-processing.js';
 export function openStorage() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('bilingual-book-maker', 1);
@@ -48,7 +49,7 @@ export async function exportProject(project) {
     pages.push({ name: page.file.name, type: page.file.type, data,
       text: page.text, translation: page.translation ?? '', complete: page.complete });
   }
-  return JSON.stringify({ version: 1, title: project.title, language: project.language, layout: project.layout ?? 'page', pages });
+  return JSON.stringify({ version: 1, title: project.title, language: project.language, layout: project.layout ?? 'page', processing: validateProcessing(project.processing), pages });
 }
 
 export function importProject(text) {
@@ -69,5 +70,5 @@ export function importProject(text) {
     return { file: new File([bytes], page.name, { type: page.type }),
       text: page.text, translation: page.translation ?? '', complete: page.complete };
   });
-  return { title: value.title, language: value.language, layout: value.layout ?? 'page', pages };
+  return { title: value.title, language: value.language, layout: value.layout ?? 'page', processing: validateProcessing(value.processing), pages };
 }
