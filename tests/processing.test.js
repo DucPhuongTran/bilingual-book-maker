@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { cropRectangle, adjustPixels, prepareImage } from '../src/image-processing.js';
 import { importProject } from '../src/project.js';
-import { translateWithClaude } from '../src/claude.js';
+import { translateWithClaude, translationContext } from '../src/claude.js';
 
 test('crop uses original dimensions and image processing leaves the source intact by default', async () => {
   assert.deepEqual(cropRectangle(1000, 2000, { top: 5, bottom: 10, right: 20 }),
@@ -33,10 +33,20 @@ test('Claude request sends source text and rejects incomplete output', async t =
     assert.equal(url, 'https://api.anthropic.com/v1/messages');
     assert.equal(request.headers['anthropic-dangerous-direct-browser-access'], 'true');
     assert.equal(request.headers['x-api-key'], options.apiKey);
-    assert.equal(JSON.parse(request.body).messages[0].content, options.text);
+    assert.equal(JSON.parse(JSON.parse(request.body).messages[0].content).currentPage, options.text);
     return Response.json({ stop_reason: reason, content: [{ type: 'text', text: 'Một trang.' }] });
   });
   assert.equal(await translateWithClaude(options), 'Một trang.');
   reason = 'max_tokens';
   await assert.rejects(translateWithClaude(options), /chưa hoàn tất/);
+});
+
+
+test('translation context is bounded to adjacent pages and includes the preceding translation', () => {
+  const pages = [{ text: 'A'.repeat(1200), translation: 'Bản dịch trước' }, { text: 'Current' }, { text: 'B'.repeat(1200) }];
+  assert.deepEqual(translationContext(pages, 1), {
+    previousPageEnd: 'A'.repeat(1000), previousTranslationEnd: 'Bản dịch trước', nextPageStart: 'B'.repeat(1000),
+  });
+  assert.equal(translationContext(pages, 0).previousPageEnd, '');
+  assert.equal(translationContext(pages, 2).nextPageStart, '');
 });

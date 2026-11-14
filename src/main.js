@@ -1,7 +1,7 @@
 import { createWorker } from 'tesseract.js';
 import './style.css';
 import { defaultProcessing, validateProcessing, prepareImage } from './image-processing.js';
-import { translateWithClaude } from './claude.js';
+import { translateWithClaude, translationContext } from './claude.js';
 const processingPanel = document.querySelector('#processing-panel');
 const cropInputs = Object.fromEntries(['top', 'bottom', 'left', 'right'].map(side => [side, document.querySelector('#crop-' + side)]));
 const invertImage = document.querySelector('#invert-image');
@@ -84,8 +84,9 @@ async function runTranslation(batch) {
   const timeout = setTimeout(() => translationController?.abort(), 20 * 60 * 1000);
   try {
     for (const page of batch) {
-      claudeStatus.textContent = `Đang dịch trang ${pages.indexOf(page) + 1}; đã xong ${completed}/${batch.length}.`;
-      const translated = await translateWithClaude({ text: page.text, apiKey, model, signal: translationController.signal });
+      const index = pages.indexOf(page);
+      claudeStatus.textContent = `Đang dịch trang ${index + 1}. đã xong ${completed}/${batch.length}.`;
+      const translated = await translateWithClaude({ text: page.text, context: translationContext(pages, index), apiKey, model, signal: translationController.signal });
       if (translationController.signal.aborted) break;
       page.translation = translated;
       completed += 1;
