@@ -1,5 +1,9 @@
 import { createWorker } from 'tesseract.js';
 import './style.css';
+import { makeEpub } from './ebook.js';
+const translation = document.querySelector('#translation');
+const translationPrompt = document.querySelector('#translation-prompt');
+const epub = document.querySelector('#epub');
 import { readProject, writeProject, exportProject, importProject } from './project.js';
 
 const bookTitle = document.querySelector('#book-title');
@@ -69,7 +73,7 @@ let previewUrl;
 let busy = true;
 
 function combinedText() {
-  return pages.map(({ text }) => text.trim()).filter(Boolean).join('\n\n');
+  return pages.map(({ text, translation }) => [text.trim(), translation?.trim()].filter(Boolean).join('\n\n')).filter(Boolean).join('\n\n');
 }
 
 function updateControls() {
@@ -78,6 +82,9 @@ function updateControls() {
   backup.disabled = busy;
   restore.disabled = busy;
   newProject.disabled = busy;
+  translation.readOnly = busy || !hasPage;
+  translationPrompt.disabled = busy || !pages[selectedIndex]?.text.trim();
+  epub.disabled = busy || !pages.some(page => page.text.trim() || page.translation?.trim());
   fileInput.disabled = busy;
   pageSelect.disabled = busy;
   language.disabled = busy;
@@ -86,7 +93,7 @@ function updateControls() {
   moveDown.disabled = busy || !hasPage || selectedIndex >= pages.length - 1;
   remove.disabled = busy || !hasPage;
   result.readOnly = busy || !hasPage;
-  copy.disabled = save.disabled = busy || !pages.some(({ text }) => text.trim());
+  copy.disabled = save.disabled = busy || !pages.some(page => page.text.trim() || page.translation?.trim());
 }
 
 function showPage() {
@@ -101,6 +108,7 @@ function showPage() {
   if (previewUrl) preview.src = previewUrl;
   else preview.removeAttribute('src');
   result.value = page?.text ?? '';
+  translation.value = page?.translation ?? '';
   result.scrollTop = 0;
   outputStatus.textContent = '';
   updateControls();
@@ -115,7 +123,7 @@ function addFiles(files) {
   }
   if (selectedIndex < 0) selectedIndex = 0;
   supported.sort((a, b) => filenameOrder.compare(a.name, b.name));
-  pages.push(...supported.map((file) => ({ file, text: '', complete: false })));
+  pages.push(...supported.map((file) => ({ file, text: '', translation: '', complete: false })));
   const skipped = files.length - supported.length;
   status.textContent = skipped
     ? `Đã thêm ${supported.length} ảnh, bỏ qua ${skipped} tệp không hợp lệ.`
@@ -243,6 +251,33 @@ copy.addEventListener('click', async () => {
     outputStatus.textContent = 'Đã sao chép văn bản.';
   } catch {
     outputStatus.textContent = 'Trình duyệt không thể sao chép toàn bộ. Bạn có thể dùng nút Tải TXT toàn bộ.';
+  }
+});
+translation.addEventListener('input', () => {
+  if (pages[selectedIndex]) pages[selectedIndex].translation = translation.value;
+  clearTimeout(saveTimer);
+  storageStatus.textContent = 'Đang chờ lưu…';
+  saveTimer = setTimeout(persistProject, 300);
+  updateControls();
+});
+translationPrompt.addEventListener('click', async () => {
+  const text = pages[selectedIndex]?.text;
+  if (!text) return;
+  const prompt = 'Hãy dịch đoạn sách dưới đây sang tiếng Việt tự nhiên, giữ đúng ý và cách chia đoạn. Chỉ trả về bản dịch. Đoạn có thể bắt đầu hoặc kết thúc giữa câu do chia trang; không tự bổ sung nội dung còn thiếu.\n\n' + text;
+  try {
+    await navigator.clipboard.writeText(prompt);
+    outputStatus.textContent = 'Đã sao chép. Dán vào ChatGPT, rồi đưa bản dịch về ô Bản dịch tiếng Việt.';
+  } catch {
+    outputStatus.textContent = 'Không thể sao chép. Hãy sao chép nguyên văn trong ô phía trên để dịch.';
+  }
+});
+epub.addEventListener('click', () => {
+  try {
+    download(makeEpub(projectSnapshot()), (bookTitle.value.trim() || 'sach-song-ngu') + '.epub', 'application/epub+zip');
+    outputStatus.textContent = 'Đã xuất EPUB. Các trang chưa có bản dịch giữ phần nguyên văn.';
+  } catch (error) {
+    console.error(error);
+    outputStatus.textContent = 'Không thể xuất EPUB. Hãy kiểm tra nội dung và thử lại.';
   }
 });
 save.addEventListener('click', () => {

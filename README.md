@@ -6,6 +6,12 @@
 
 Dự án hiện tại tự lưu ảnh, thứ tự trang, ngôn ngữ và văn bản trong IndexedDB của trình duyệt. Mở lại cùng địa chỉ trên cùng trình duyệt để tiếp tục. Nút tải bản sao xuất JSON chứa toàn bộ ảnh và văn bản để nhập trên thiết bị khác. Tạo dự án mới hoặc mở bản sao sẽ thay dự án hiện tại sau khi xác nhận. Bộ nhớ phụ thuộc dung lượng thiết bị và có thể bị xóa cùng dữ liệu trình duyệt, nên giữ bản sao cho các dự án quan trọng.
 
+## Song ngữ và ebook
+
+Sau OCR, chọn trang và bấm **Sao chép yêu cầu dịch trang này**, dán vào ChatGPT rồi đưa kết quả về ô **Bản dịch tiếng Việt**. Có thể tự nhập hoặc sửa bản dịch. Bản dịch được tự lưu và đưa vào bản sao dự án. Bản sao cũ chưa có bản dịch vẫn mở được.
+
+**Tải EPUB** tạo ebook EPUB 3 với mục lục theo trang, mỗi trang có nguyên văn trước rồi bản dịch sau. Trang chưa dịch giữ nguyên văn. TXT và sao chép toàn bộ cũng gồm cả hai phần. Ứng dụng hiện dùng dịch qua sao chép/dán và xuất EPUB; chưa có dịch tự động qua API, căn song ngữ theo từng đoạn hoặc xuất PRC.
+
 ## Chạy trên máy
 
 Cài Node.js 22.12 trở lên, sau đó chạy:

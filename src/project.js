@@ -46,7 +46,7 @@ export async function exportProject(project) {
       reader.readAsDataURL(page.file);
     });
     pages.push({ name: page.file.name, type: page.file.type, data,
-      text: page.text, complete: page.complete });
+      text: page.text, translation: page.translation ?? '', complete: page.complete });
   }
   return JSON.stringify({ version: 1, title: project.title, language: project.language, pages });
 }
@@ -60,14 +60,14 @@ export function importProject(text) {
   }
   const pages = value.pages.map((page) => {
     if (!types.includes(page.type) || typeof page.name !== 'string' ||
-        typeof page.text !== 'string' || typeof page.complete !== 'boolean' ||
+        typeof page.text !== 'string' || (page.translation !== undefined && typeof page.translation !== 'string') || typeof page.complete !== 'boolean' ||
         typeof page.data !== 'string' || !page.data.startsWith('data:' + page.type + ';base64,')) {
       throw new Error('Trang trong dự án không hợp lệ.');
     }
     const bytes = Uint8Array.from(atob(page.data.split(',')[1]), char => char.charCodeAt(0));
     if (!bytes.length) throw new Error('Ảnh trống.');
     return { file: new File([bytes], page.name, { type: page.type }),
-      text: page.text, complete: page.complete };
+      text: page.text, translation: page.translation ?? '', complete: page.complete };
   });
   return { title: value.title, language: value.language, pages };
 }

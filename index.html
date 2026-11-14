@@ -54,9 +54,14 @@
         <h2 id="result-title">Văn bản nhận dạng</h2>
         <label for="result">Văn bản của trang đang xem</label>
         <textarea id="result" spellcheck="false" placeholder="Kết quả sẽ xuất hiện ở đây. Bạn có thể sửa trực tiếp."></textarea>
+        <button id="translation-prompt">Sao chép yêu cầu dịch trang này</button>
+        <label for="translation">Bản dịch tiếng Việt</label>
+        <textarea id="translation" placeholder="Dán bản dịch từ ChatGPT vào đây, hoặc tự nhập và chỉnh sửa."></textarea>
+        <p>Bản song ngữ được ghép theo trang, nguyên văn ở trước và bản dịch ở sau.</p>
         <div class="actions">
+          <button id="epub">Tải EPUB</button>
           <button id="copy" disabled>Sao chép toàn bộ</button>
-          <button id="save" disabled>Tải TXT toàn bộ</button>
+          <button id="save" disabled>Tải TXT song ngữ</button>
         </div>
         <p id="output-status" role="status"></p>
       </section>

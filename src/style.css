@@ -38,3 +38,5 @@ textarea { display: block; width: 100%; min-height: 265px; resize: vertical; pad
 .project .actions { align-items: center; }
 .project .actions label { margin: 0; }
 .project p { font-size: .9rem; }
+#translation-prompt { margin: 12px 0; }
+#translation { min-height: 200px; }
