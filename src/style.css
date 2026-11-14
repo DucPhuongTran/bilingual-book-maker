@@ -33,3 +33,8 @@ textarea { display: block; width: 100%; min-height: 265px; resize: vertical; pad
 :focus-visible { outline: 3px solid #338068; outline-offset: 3px; }
 @media (max-width: 700px) { .workspace { grid-template-columns: 1fr; } }
 #page-label { margin-top: 12px; }
+.project { margin-bottom: 18px; }
+#book-title { width: 100%; padding: 10px; border: 1px solid #a4b4a8; border-radius: 8px; background: #fffef9; }
+.project .actions { align-items: center; }
+.project .actions label { margin: 0; }
+.project p { font-size: .9rem; }

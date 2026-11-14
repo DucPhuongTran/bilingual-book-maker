@@ -4,14 +4,26 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f4f2e9">
-  <title>Tách chữ từ ảnh</title>
+  <title>Bilingual Book Maker</title>
 </head>
 <body>
   <main>
     <header>
-      <h1>Tách chữ từ ảnh</h1>
+      <h1>Làm sách từ ảnh</h1>
       <p>Nhận dạng tiếng Việt và tiếng Anh. Ảnh được xử lý ngay trên thiết bị của bạn.</p>
     </header>
+    <section class="project" aria-label="Dự án sách">
+      <label for="book-title">Tên sách</label>
+      <input id="book-title" placeholder="Sách của tôi">
+      <div class="actions">
+        <button id="backup">Tải bản sao dự án</button>
+        <label for="restore">Mở bản sao dự án</label>
+        <input id="restore" type="file" accept=".json,application/json">
+        <button id="new-project">Tạo dự án mới</button>
+      </div>
+      <p id="storage-status" role="status">Đang mở dự án đã lưu…</p>
+      <p>Ảnh và văn bản tự lưu trên trình duyệt này. Tải bản sao để chuyển máy hoặc giữ lại trước khi xóa dữ liệu trình duyệt.</p>
+    </section>
     <div class="workspace">
       <section aria-labelledby="source-title">
         <h2 id="source-title">Ảnh nguồn</h2>
