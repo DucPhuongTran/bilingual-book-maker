@@ -1,6 +1,6 @@
 # Tách chữ từ ảnh
 
-Ứng dụng OCR chạy trong trình duyệt bằng Vite và Tesseract.js. Chọn, kéo thả hoặc dán ảnh PNG, JPEG, WebP. Chọn tiếng Việt, tiếng Anh hoặc cả hai. Sau khi nhận dạng, có thể sửa kết quả, sao chép hoặc tải xuống dưới dạng TXT.
+Ứng dụng OCR chạy trong trình duyệt bằng Vite và Tesseract.js. Chọn, kéo thả hoặc dán nhiều ảnh PNG, JPEG, WebP. Ảnh trong mỗi lần thêm được sắp theo tên file, có thể đổi thứ tự hoặc xóa trang trước khi nhận dạng. Chọn tiếng Việt, tiếng Anh hoặc cả hai, rồi nhận dạng theo lô. Mỗi trang có ô kết quả chỉnh sửa được. Sao chép hoặc tải TXT sẽ ghép văn bản theo thứ tự trang, cách nhau bằng dòng trống.
 
 Ảnh và văn bản được xử lý trên thiết bị. Bộ OCR và dữ liệu ngôn ngữ được phục vụ cùng ứng dụng.
 
