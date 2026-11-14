@@ -1,0 +1,25 @@
+{
+  "name": "image-to-text",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "predev": "node scripts/prepare-ocr.mjs",
+    "prebuild": "node scripts/prepare-ocr.mjs"
+  },
+  "type": "module",
+  "dependencies": {
+    "@tesseract.js-data/eng": "^1.0.0",
+    "@tesseract.js-data/vie": "^1.0.0",
+    "tesseract": {
+      "js-core": "7.0.0"
+    },
+    "tesseract.js": "^7.0.0"
+  },
+  "devDependencies": {
+    "vite": "^8.3.8"
+  },
+  "private": true
+}

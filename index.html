@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f4f2e9">
+  <title>Tách chữ từ ảnh</title>
+</head>
+<body>
+  <main>
+    <header>
+      <h1>Tách chữ từ ảnh</h1>
+      <p>Nhận dạng tiếng Việt và tiếng Anh. Ảnh được xử lý ngay trên thiết bị của bạn.</p>
+    </header>
+    <div class="workspace">
+      <section aria-labelledby="source-title">
+        <h2 id="source-title">Ảnh nguồn</h2>
+        <div id="drop-zone">
+          <label for="file">Chọn ảnh</label>
+          <input type="file" id="file" accept="image/png,image/jpeg,image/webp">
+          <p>Kéo thả hoặc dán ảnh PNG, JPEG, WebP vào trang.</p>
+          <img id="preview" alt="Ảnh bạn đã chọn" hidden>
+          <p id="filename" hidden></p>
+        </div>
+        <label for="language">Ngôn ngữ trong ảnh</label>
+        <select id="language">
+          <option value="vie+eng">Tiếng Việt và tiếng Anh</option>
+          <option value="vie">Tiếng Việt</option>
+          <option value="eng">Tiếng Anh</option>
+        </select>
+        <button id="recognize" class="primary" disabled>Nhận dạng chữ</button>
+        <progress id="progress" max="1" aria-label="Tiến độ nhận dạng" hidden></progress>
+        <p id="status" role="status">Chọn ảnh để bắt đầu.</p>
+      </section>
+      <section aria-labelledby="result-title">
+        <h2 id="result-title">Văn bản nhận dạng</h2>
+        <textarea id="result" aria-labelledby="result-title" spellcheck="false" placeholder="Kết quả sẽ xuất hiện ở đây. Bạn có thể sửa trực tiếp."></textarea>
+        <div class="actions">
+          <button id="copy" disabled>Sao chép</button>
+          <button id="save" disabled>Tải TXT</button>
+        </div>
+        <p id="output-status" role="status"></p>
+      </section>
+    </div>
+  </main>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
